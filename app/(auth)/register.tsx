@@ -161,6 +161,7 @@ export default function RegisterScreen() {
         try {
             const nombreCompleto = `${nombre.trim()} ${apellido.trim()}`;
 
+            // 1. Registrar usuario en Auth (con nombre completo en metadata)
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: email.toLowerCase().trim(),
                 password: password,
@@ -175,11 +176,13 @@ export default function RegisterScreen() {
             if (authError) throw authError;
 
             if (authData.user) {
+                // 2. Crear perfil con nombres separados
                 const { error: perfilError } = await supabase
                     .from('perfiles')
                     .insert({
                         id: authData.user.id,
-                        nombre_completo: nombreCompleto,
+                        nombre: nombre.trim(),
+                        apellidos: apellido.trim(),
                         correo_electronico: email.toLowerCase().trim(),
                         genero: genero || null,
                         fecha_nacimiento: formatDateForDB(fechaNacimiento),

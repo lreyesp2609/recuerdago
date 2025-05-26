@@ -3,6 +3,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -76,56 +79,68 @@ export default function VerifyScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.innerContainer}>
-                <View style={styles.logoContainer}>
-                    <Ionicons name="mail-outline" size={80} color="#4E8AF4" />
-                </View>
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.container}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+        >
+            <ScrollView
+                contentContainerStyle={styles.scrollContainer}
+                keyboardShouldPersistTaps="handled"
+            >
+                <View style={styles.innerContainer}>
+                    <View style={styles.logoContainer}>
+                        <Ionicons name="mail-outline" size={80} color="#4E8AF4" />
+                    </View>
 
-                <Text style={styles.title}>Verificar Email</Text>
-                <Text style={styles.subtitle}>
-                    Te hemos enviado un código de verificación a:
-                </Text>
-                <Text style={styles.email}>{email}</Text>
-
-                <View style={styles.inputContainer}>
-                    <FontAwesome name="key" size={20} color="#ccc" style={styles.inputIcon} />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Código de verificación"
-                        value={code}
-                        onChangeText={setCode}
-                        keyboardType="number-pad"
-                        maxLength={6}
-                        autoCapitalize="none"
-                    />
-                </View>
-
-                <TouchableOpacity
-                    style={[styles.button, loading && styles.disabledButton]}
-                    onPress={handleVerify}
-                    disabled={loading}
-                >
-                    <Text style={styles.buttonText}>
-                        {loading ? 'Verificando...' : 'Verificar'}
+                    <Text style={styles.title}>Verificar Email</Text>
+                    <Text style={styles.subtitle}>
+                        Te hemos enviado un código de verificación a:
                     </Text>
-                </TouchableOpacity>
+                    <Text style={styles.email}>{email}</Text>
 
-                <TouchableOpacity
-                    style={styles.resendButton}
-                    onPress={handleResendCode}
-                    disabled={resending}
-                >
-                    <Text style={styles.resendText}>
-                        {resending ? 'Reenviando...' : '¿No recibiste el código? Reenviar'}
-                    </Text>
-                </TouchableOpacity>
+                    <View style={styles.inputContainer}>
+                        <FontAwesome name="key" size={20} color="#ccc" style={styles.inputIcon} />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Código de verificación"
+                            value={code}
+                            onChangeText={setCode}
+                            keyboardType="number-pad"
+                            maxLength={6}
+                            autoCapitalize="none"
+                            autoFocus
+                        />
+                    </View>
 
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Text style={styles.backText}>Volver</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                            style={[styles.button, loading && styles.disabledButton]}
+                            onPress={handleVerify}
+                            disabled={loading}
+                        >
+                            <Text style={styles.buttonText}>
+                                {loading ? 'Verificando...' : 'Verificar'}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.resendButton}
+                            onPress={handleResendCode}
+                            disabled={resending}
+                        >
+                            <Text style={styles.resendText}>
+                                {resending ? 'Reenviando...' : '¿No recibiste el código? Reenviar'}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => router.back()}>
+                            <Text style={styles.backText}>Volver</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
@@ -134,10 +149,11 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
     },
-    innerContainer: {
-        flex: 1,
+    scrollContainer: {
+        flexGrow: 1,
         justifyContent: 'center',
-        alignItems: 'center',
+    },
+    innerContainer: {
         paddingHorizontal: 30,
     },
     logoContainer: {
@@ -181,6 +197,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#333',
     },
+    buttonContainer: {
+        width: '100%',
+        marginTop: 20,
+    },
     button: {
         backgroundColor: '#4E8AF4',
         paddingVertical: 15,
@@ -201,6 +221,7 @@ const styles = StyleSheet.create({
     resendButton: {
         paddingVertical: 10,
         marginBottom: 20,
+        alignItems: 'center',
     },
     resendText: {
         color: '#4E8AF4',
@@ -210,5 +231,6 @@ const styles = StyleSheet.create({
     backText: {
         color: '#666',
         fontSize: 14,
+        textAlign: 'center',
     },
 });
