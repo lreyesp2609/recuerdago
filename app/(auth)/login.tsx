@@ -1,27 +1,27 @@
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    View,
+    KeyboardAvoidingView,
+    Platform,
     StyleSheet,
+    Text,
     TextInput,
     TouchableOpacity,
-    Text,
-    KeyboardAvoidingView,
-    Platform
+    View
 } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    // En tu LoginScreen (login.tsx)
     const handleLogin = () => {
         console.log('Email:', email, 'Password:', password);
-        // Aquí iría la lógica de autenticación (Firebase, API, etc.)
+        // Después de la lógica de autenticación exitosa:
+        router.replace('/(home)/'); // Usamos replace para no poder volver atrás
     };
-
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
