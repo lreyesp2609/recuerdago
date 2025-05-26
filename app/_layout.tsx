@@ -15,6 +15,13 @@ export default function AuthLayout() {
           headerShown: false
         }}
       />
+      <Stack.Screen
+        name="(auth)/verify"
+        options={{
+          headerShown: false,
+          title: 'Verificar Email'
+        }}
+      />
     </Stack>
   );
 }
