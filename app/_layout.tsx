@@ -3,8 +3,9 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
+import 'react-native-url-polyfill/auto';
+import { LanguageProvider } from '../components/idioma/languagecontexttype';
+import { useColorScheme } from '../hooks/useColorScheme';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -13,17 +14,19 @@ export default function RootLayout() {
   });
 
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="auth" />
+          {/* Aquí puedes agregar más rutas principales como (tabs) */}
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
