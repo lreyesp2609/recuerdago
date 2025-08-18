@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { useThemeColors } from '../../hooks/useThemeColor';
 import { useLanguage } from './languagecontexttype';
 
 interface LanguageSelectorProps {
@@ -16,6 +17,7 @@ interface LanguageSelectorProps {
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({ showInHeader = false }) => {
     const { language, setLanguage, t } = useLanguage();
     const [modalVisible, setModalVisible] = useState(false);
+    const colors = useThemeColors(); // Usar el sistema de colores temáticos
 
     const languages = [
         { code: 'es', name: 'Español', flag: '🇪🇸' },
@@ -32,17 +34,27 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ showInHeader = fals
     return (
         <View>
             <TouchableOpacity
-                style={showInHeader ? styles.headerButton : styles.settingsButton}
+                style={[
+                    showInHeader ? styles.headerButton : styles.settingsButton,
+                    {
+                        backgroundColor: showInHeader 
+                            ? colors.floatingBg || colors.surface 
+                            : colors.surface,
+                        borderColor: showInHeader ? 'transparent' : colors.inputBorder,
+                    }
+                ]}
                 onPress={() => setModalVisible(true)}
             >
                 <Text style={styles.flagText}>{currentLanguage?.flag}</Text>
                 {!showInHeader && (
-                    <Text style={styles.buttonText}>{t('settings.language')}</Text>
+                    <Text style={[styles.buttonText, { color: colors.text }]}>
+                        {t('settings.language')}
+                    </Text>
                 )}
                 <Ionicons
                     name="chevron-down"
                     size={16}
-                    color={showInHeader ? "#666" : "#333"}
+                    color={colors.textSecondary}
                 />
             </TouchableOpacity>
 
@@ -53,36 +65,51 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ showInHeader = fals
                 onRequestClose={() => setModalVisible(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>{t('settings.selectLanguage')}</Text>
+                    <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>
+                            {t('settings.selectLanguage')}
+                        </Text>
 
                         {languages.map((lang) => (
                             <TouchableOpacity
                                 key={lang.code}
                                 style={[
                                     styles.languageOption,
-                                    language === lang.code && styles.selectedOption
+                                    language === lang.code && {
+                                        backgroundColor: colors.isDark 
+                                            ? 'rgba(78, 138, 244, 0.2)' 
+                                            : '#E8F4FD'
+                                    }
                                 ]}
                                 onPress={() => handleLanguageSelect(lang.code)}
                             >
                                 <Text style={styles.flagText}>{lang.flag}</Text>
                                 <Text style={[
                                     styles.languageText,
-                                    language === lang.code && styles.selectedText
+                                    { color: colors.text },
+                                    language === lang.code && { 
+                                        color: colors.primary,
+                                        fontWeight: 'bold' 
+                                    }
                                 ]}>
                                     {lang.name}
                                 </Text>
                                 {language === lang.code && (
-                                    <Ionicons name="checkmark" size={20} color="#4E8AF4" />
+                                    <Ionicons name="checkmark" size={20} color={colors.primary} />
                                 )}
                             </TouchableOpacity>
                         ))}
 
                         <TouchableOpacity
-                            style={styles.closeButton}
+                            style={[
+                                styles.closeButton,
+                                { backgroundColor: colors.inputBackground }
+                            ]}
                             onPress={() => setModalVisible(false)}
                         >
-                            <Text style={styles.closeButtonText}>{t('general.cancel')}</Text>
+                            <Text style={[styles.closeButtonText, { color: colors.textSecondary }]}>
+                                {t('general.cancel')}
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -96,7 +123,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 8,
-        backgroundColor: '#f0f0f0',
         borderRadius: 20,
         minWidth: 60,
         justifyContent: 'center',
@@ -105,11 +131,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 15,
-        backgroundColor: '#fff',
         borderRadius: 10,
         marginVertical: 5,
         borderWidth: 1,
-        borderColor: '#ddd',
         justifyContent: 'space-between',
     },
     flagText: {
@@ -118,7 +142,6 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         fontSize: 16,
-        color: '#333',
         flex: 1,
     },
     modalOverlay: {
@@ -128,18 +151,21 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modalContent: {
-        backgroundColor: '#fff',
         borderRadius: 20,
         padding: 20,
         margin: 20,
         minWidth: 300,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+        elevation: 8,
     },
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 20,
-        color: '#333',
     },
     languageOption: {
         flexDirection: 'row',
@@ -148,29 +174,19 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginVertical: 5,
     },
-    selectedOption: {
-        backgroundColor: '#E8F4FD',
-    },
     languageText: {
         fontSize: 16,
         flex: 1,
         marginLeft: 10,
-        color: '#333',
-    },
-    selectedText: {
-        color: '#4E8AF4',
-        fontWeight: 'bold',
     },
     closeButton: {
         marginTop: 20,
         padding: 15,
-        backgroundColor: '#f0f0f0',
         borderRadius: 10,
         alignItems: 'center',
     },
     closeButtonText: {
         fontSize: 16,
-        color: '#666',
     },
 });
 

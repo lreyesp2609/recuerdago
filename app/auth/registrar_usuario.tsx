@@ -7,16 +7,17 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
+    Alert,
     Animated,
     KeyboardAvoidingView,
-    Platform,
     SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 
 export default function RegisterScreen() {
@@ -29,15 +30,14 @@ export default function RegisterScreen() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordsMatch, setPasswordsMatch] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isRegistering, setIsRegistering] = useState(false);
     const colors = useThemeColors();
 
-    // Animación para el logo
+    // Animaciones
     const bounceValue = new Animated.Value(0);
     const rotateValue = new Animated.Value(0);
 
     useEffect(() => {
-        // Animación de rebote para el logo
         Animated.loop(
             Animated.sequence([
                 Animated.timing(bounceValue, {
@@ -53,7 +53,6 @@ export default function RegisterScreen() {
             ])
         ).start();
 
-        // Animación de rotación sutil para la campanita
         Animated.loop(
             Animated.timing(rotateValue, {
                 toValue: 1,
@@ -64,7 +63,6 @@ export default function RegisterScreen() {
     }, []);
 
     useEffect(() => {
-        // Verificar si las contraseñas coinciden
         if (confirmPassword.length > 0) {
             setPasswordsMatch(password === confirmPassword);
         } else {
@@ -82,41 +80,51 @@ export default function RegisterScreen() {
         outputRange: ['0deg', '15deg'],
     });
 
-    const handleRegister = () => {
-        if (!passwordsMatch) {
-            console.log('Las contraseñas no coinciden');
+    const handleRegister = async () => {
+        if (!nombre || !apellidos || !email || !password) {
+            Alert.alert('Error', 'Por favor completa todos los campos');
             return;
         }
 
-        console.log('¡Nuevo usuario registrado!', {
-            nombre,
-            apellidos,
-            email,
-            password
-        });
-        console.log('🎉 ¡Bienvenido a RecuerdaGo! 🎉');
-        // Aquí iría la lógica de registro
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            Alert.alert('Error', 'Por favor ingresa un email válido');
+            return;
+        }
+
+        if (!passwordsMatch) {
+            Alert.alert('Error', 'Las contraseñas no coinciden');
+            return;
+        }
+
+        if (password.length < 6) {
+            Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+            return;
+        }
+
+        setIsRegistering(true);
+
+        try {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            console.log('✅ Usuario registrado exitosamente:', {
+                nombre,
+                apellidos,
+                email
+            });
+
+            router.replace('/tabs');
+        } catch (error) {
+            console.error('Error en registro:', error);
+            Alert.alert('Error', 'Error al crear la cuenta. Inténtalo de nuevo.');
+        } finally {
+            setIsRegistering(false);
+        }
     };
 
     const handleBackToLogin = () => {
-        console.log('Regresando al login... 👋');
+        if (isRegistering) return;
         router.back();
-    };
-
-    const getPasswordStrength = () => {
-        if (password.length === 0) return '';
-        if (password.length < 4) return '😱 ¡Muy débil!';
-        if (password.length < 6) return '😐 Débil';
-        if (password.length < 8) return '🙂 Aceptable';
-        return '💪 ¡Fuerte!';
-    };
-
-    const getPasswordStrengthColor = () => {
-        if (password.length === 0) return colors.textSecondary;
-        if (password.length < 4) return '#FF6B6B';
-        if (password.length < 6) return '#FFD93D';
-        if (password.length < 8) return '#6BCF7F';
-        return '#4ECDC4';
     };
 
     if (isLoading) {
@@ -133,17 +141,11 @@ export default function RegisterScreen() {
     return (
         <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
             <StatusBar style={colors.isDark ? 'light' : 'dark'} />
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.container}
-            >
+            <KeyboardAvoidingView behavior="height" style={styles.container}>
                 {/* Selector flotante */}
                 <View style={[
                     styles.floatingLanguageSelector,
-                    {
-                        backgroundColor: colors.floatingBg,
-                        top: Platform.OS === 'ios' ? 60 : 50,
-                    }
+                    { backgroundColor: colors.floatingBg, top: 50 }
                 ]}>
                     <LanguageSelector showInHeader={true} />
                 </View>
@@ -152,6 +154,7 @@ export default function RegisterScreen() {
                     contentContainerStyle={styles.scrollContainer}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
+                    bounces={false}
                 >
                     <View style={styles.innerContainer}>
                         {/* Logo animado */}
@@ -163,7 +166,7 @@ export default function RegisterScreen() {
                         >
                             <Ionicons
                                 name="location-sharp"
-                                size={60}
+                                size={50}
                                 color={colors.primary}
                                 style={styles.logoIcon}
                             />
@@ -178,18 +181,18 @@ export default function RegisterScreen() {
                             >
                                 <Ionicons
                                     name="alarm"
-                                    size={30}
+                                    size={24}
                                     color={colors.secondary}
                                 />
                             </Animated.View>
                         </Animated.View>
 
                         <Text style={[styles.title, { color: colors.text }]}>
-                            ¡Únete a RecuerdaGo! 🚀
+                            {t('register.title') || 'Crear Cuenta'}
                         </Text>
 
                         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-                            Crea tu cuenta y nunca más olvides nada
+                            {t('register.subtitle') || '¡Únete a RecuerdaGo!'}
                         </Text>
 
                         {/* Nombre */}
@@ -202,18 +205,19 @@ export default function RegisterScreen() {
                         ]}>
                             <FontAwesome
                                 name="user"
-                                size={20}
+                                size={18}
                                 color={colors.inputIcon}
                                 style={styles.inputIcon}
                             />
                             <TextInput
                                 style={[styles.input, { color: colors.text }]}
-                                placeholder="Tu nombre"
+                                placeholder={t('register.name') || 'Nombre'}
                                 placeholderTextColor={colors.placeholder}
                                 value={nombre}
                                 onChangeText={setNombre}
                                 autoCapitalize="words"
                                 keyboardAppearance={colors.isDark ? 'dark' : 'light'}
+                                editable={!isRegistering}
                             />
                         </View>
 
@@ -227,18 +231,19 @@ export default function RegisterScreen() {
                         ]}>
                             <MaterialIcons
                                 name="family-restroom"
-                                size={20}
+                                size={18}
                                 color={colors.inputIcon}
                                 style={styles.inputIcon}
                             />
                             <TextInput
                                 style={[styles.input, { color: colors.text }]}
-                                placeholder="Tus apellidos"
+                                placeholder={t('register.lastName') || 'Apellidos'}
                                 placeholderTextColor={colors.placeholder}
                                 value={apellidos}
                                 onChangeText={setApellidos}
                                 autoCapitalize="words"
                                 keyboardAppearance={colors.isDark ? 'dark' : 'light'}
+                                editable={!isRegistering}
                             />
                         </View>
 
@@ -252,19 +257,20 @@ export default function RegisterScreen() {
                         ]}>
                             <FontAwesome
                                 name="envelope"
-                                size={20}
+                                size={18}
                                 color={colors.inputIcon}
                                 style={styles.inputIcon}
                             />
                             <TextInput
                                 style={[styles.input, { color: colors.text }]}
-                                placeholder="tu@email.com"
+                                placeholder={t('register.email') || 'Email'}
                                 placeholderTextColor={colors.placeholder}
                                 value={email}
                                 onChangeText={setEmail}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 keyboardAppearance={colors.isDark ? 'dark' : 'light'}
+                                editable={!isRegistering}
                             />
                         </View>
 
@@ -278,38 +284,37 @@ export default function RegisterScreen() {
                         ]}>
                             <FontAwesome
                                 name="lock"
-                                size={20}
+                                size={18}
                                 color={colors.inputIcon}
                                 style={styles.inputIcon}
                             />
                             <TextInput
                                 style={[styles.input, { color: colors.text }]}
-                                placeholder="Contraseña súper secreta"
+                                placeholder={t('register.password') || 'Contraseña'}
                                 placeholderTextColor={colors.placeholder}
                                 value={password}
                                 onChangeText={setPassword}
                                 secureTextEntry={!showPassword}
                                 keyboardAppearance={colors.isDark ? 'dark' : 'light'}
+                                editable={!isRegistering}
                             />
                             <TouchableOpacity
                                 onPress={() => setShowPassword(!showPassword)}
                                 style={styles.eyeIcon}
+                                disabled={isRegistering}
                             >
                                 <Ionicons
                                     name={showPassword ? "eye-off" : "eye"}
-                                    size={20}
+                                    size={18}
                                     color={colors.inputIcon}
                                 />
                             </TouchableOpacity>
                         </View>
 
-                        {/* Indicador de fuerza de contraseña */}
-                        {password.length > 0 && (
-                            <Text style={[
-                                styles.passwordStrength,
-                                { color: getPasswordStrengthColor() }
-                            ]}>
-                                {getPasswordStrength()}
+                        {/* Indicador de longitud mínima */}
+                        {password.length > 0 && password.length < 6 && (
+                            <Text style={[styles.passwordHint, { color: colors.textSecondary }]}>
+                                {t('register.passwordMinLength')}
                             </Text>
                         )}
 
@@ -323,26 +328,28 @@ export default function RegisterScreen() {
                         ]}>
                             <FontAwesome
                                 name="lock"
-                                size={20}
+                                size={18}
                                 color={colors.inputIcon}
                                 style={styles.inputIcon}
                             />
                             <TextInput
                                 style={[styles.input, { color: colors.text }]}
-                                placeholder="Repite tu contraseña"
+                                placeholder={t('register.confirmPassword') || 'Confirmar contraseña'}
                                 placeholderTextColor={colors.placeholder}
                                 value={confirmPassword}
                                 onChangeText={setConfirmPassword}
-                                secureTextEntry={!showConfirmPassword}
+                                secureTextEntry={!showPassword}
                                 keyboardAppearance={colors.isDark ? 'dark' : 'light'}
+                                editable={!isRegistering}
                             />
                             <TouchableOpacity
-                                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                                onPress={() => setShowPassword(!showPassword)}
                                 style={styles.eyeIcon}
+                                disabled={isRegistering}
                             >
                                 <Ionicons
-                                    name={showConfirmPassword ? "eye-off" : "eye"}
-                                    size={20}
+                                    name={showPassword ? "eye-off" : "eye"}
+                                    size={18}
                                     color={colors.inputIcon}
                                 />
                             </TouchableOpacity>
@@ -351,7 +358,7 @@ export default function RegisterScreen() {
                         {/* Mensaje de contraseñas no coinciden */}
                         {!passwordsMatch && confirmPassword.length > 0 && (
                             <Text style={styles.errorText}>
-                                😅 ¡Oops! Las contraseñas no coinciden
+                                {t('register.passwordsNotMatch')}
                             </Text>
                         )}
 
@@ -361,25 +368,42 @@ export default function RegisterScreen() {
                                 styles.button,
                                 {
                                     backgroundColor: colors.primary,
-                                    opacity: (!passwordsMatch || !nombre || !apellidos || !email || !password) ? 0.6 : 1
+                                    opacity: (isRegistering || !passwordsMatch || !nombre || !apellidos || !email || !password) ? 0.7 : 1
                                 }
                             ]}
                             onPress={handleRegister}
                             activeOpacity={0.8}
-                            disabled={!passwordsMatch || !nombre || !apellidos || !email || !password}
+                            disabled={isRegistering || !passwordsMatch || !nombre || !apellidos || !email || !password}
                         >
-                            <Text style={styles.buttonText}>¡Crear mi cuenta! 🎉</Text>
+                            {isRegistering ? (
+                                <View style={styles.loadingButton}>
+                                    <ActivityIndicator
+                                        size="small"
+                                        color="#ffffff"
+                                        style={styles.loadingIndicator}
+                                    />
+                                    <Text style={styles.buttonText}>Creando cuenta...</Text>
+                                </View>
+                            ) : (
+                                <Text style={styles.buttonText}>{t('register.button') || 'Crear Cuenta'}</Text>
+                            )}
                         </TouchableOpacity>
 
                         {/* Footer */}
                         <View style={styles.footerContainer}>
                             <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-                                ¿Ya tienes cuenta? {' '}
+                                {t('register.hasAccount') || '¿Ya tienes cuenta?'}{' '}
                                 <Text
-                                    style={[styles.linkText, { color: colors.primary }]}
+                                    style={[
+                                        styles.linkText,
+                                        {
+                                            color: isRegistering ? colors.textSecondary : colors.primary,
+                                            opacity: isRegistering ? 0.5 : 1
+                                        }
+                                    ]}
                                     onPress={handleBackToLogin}
                                 >
-                                    ¡Inicia sesión aquí! 👈
+                                    {t('register.signIn') || 'Iniciar Sesión'}
                                 </Text>
                             </Text>
                         </View>
@@ -425,22 +449,23 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         padding: 20,
-        paddingTop: 80,
+        paddingTop: 100,
+        paddingBottom: 40,
     },
     logoContainer: {
         position: 'relative',
         alignSelf: 'center',
-        marginBottom: 15,
+        marginBottom: 20,
     },
     logoIcon: {
         opacity: 0.9,
     },
     bellIcon: {
         position: 'absolute',
-        right: -10,
-        top: -10,
-        borderRadius: 15,
-        padding: 3,
+        right: -8,
+        top: -8,
+        borderRadius: 12,
+        padding: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -449,14 +474,14 @@ const styles = StyleSheet.create({
     },
     title: {
         textAlign: 'center',
-        marginBottom: 10,
-        fontSize: 24,
+        marginBottom: 8,
+        fontSize: 22,
         fontWeight: '700'
     },
     subtitle: {
         textAlign: 'center',
         marginBottom: 25,
-        fontSize: 16,
+        fontSize: 15,
         fontStyle: 'italic',
     },
     inputContainer: {
@@ -464,9 +489,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 8,
         paddingHorizontal: 15,
-        marginVertical: 6,
+        marginVertical: 5,
         borderWidth: 1,
-        height: 50,
+        height: 48,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
@@ -483,17 +508,17 @@ const styles = StyleSheet.create({
     eyeIcon: {
         padding: 5,
     },
-    passwordStrength: {
+    passwordHint: {
         textAlign: 'center',
-        fontSize: 12,
+        fontSize: 11,
         marginTop: -2,
         marginBottom: 8,
-        fontWeight: '600',
+        fontWeight: '500',
     },
     errorText: {
         color: '#FF6B6B',
         textAlign: 'center',
-        fontSize: 12,
+        fontSize: 11,
         marginTop: -2,
         marginBottom: 8,
     },
@@ -513,10 +538,16 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         fontSize: 16,
     },
+    loadingButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    loadingIndicator: {
+        marginRight: 8,
+    },
     footerContainer: {
         alignItems: 'center',
         marginTop: 20,
-        marginBottom: 20,
     },
     footerText: {
         textAlign: 'center',

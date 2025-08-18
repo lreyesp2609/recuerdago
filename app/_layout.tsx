@@ -23,6 +23,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="auth" />
+          <Stack.Screen name="tabs" />
           {/* Aquí puedes agregar más rutas principales como (tabs) */}
         </Stack>
         <StatusBar style="auto" />

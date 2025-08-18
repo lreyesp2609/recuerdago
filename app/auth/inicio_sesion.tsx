@@ -7,8 +7,9 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
+    ActivityIndicator,
+    Alert,
     KeyboardAvoidingView,
-    Platform,
     SafeAreaView,
     StyleSheet,
     Text,
@@ -22,11 +23,36 @@ export default function LoginScreen() {
     const { t, isLoading } = useLanguage();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
     const colors = useThemeColors();
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         console.log('Email:', email, 'Password:', password);
-        // Aquí no se navega a ninguna ruta
+
+        if (!email || !password) {
+            Alert.alert('Error', 'Por favor completa todos los campos');
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            Alert.alert('Error', 'Por favor ingresa un email válido');
+            return;
+        }
+
+        setIsLoggingIn(true);
+
+        try {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            console.log('✅ Login exitoso - Navegando a tabs...');
+            router.replace('/tabs');
+        } catch (error) {
+            console.error('Error en login:', error);
+            Alert.alert('Error', 'Credenciales incorrectas. Inténtalo de nuevo.');
+        } finally {
+            setIsLoggingIn(false);
+        }
     };
 
     if (isLoading) {
@@ -43,17 +69,12 @@ export default function LoginScreen() {
     return (
         <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
             <StatusBar style={colors.isDark ? 'light' : 'dark'} />
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.container}
-            >
-                {/* Selector flotante - Respeta la SafeArea */}
+            <KeyboardAvoidingView behavior="height" style={styles.container}>
+
+                {/* Selector flotante */}
                 <View style={[
                     styles.floatingLanguageSelector,
-                    {
-                        backgroundColor: colors.floatingBg,
-                        top: Platform.OS === 'ios' ? 60 : 50, // Valores seguros para ambas plataformas
-                    }
+                    { backgroundColor: colors.floatingBg, top: 50 }
                 ]}>
                     <LanguageSelector showInHeader={true} />
                 </View>
@@ -101,7 +122,7 @@ export default function LoginScreen() {
                             onChangeText={setEmail}
                             keyboardType="email-address"
                             autoCapitalize="none"
-                            keyboardAppearance={colors.isDark ? 'dark' : 'light'}
+                            editable={!isLoggingIn}
                         />
                     </View>
 
@@ -126,17 +147,35 @@ export default function LoginScreen() {
                             value={password}
                             onChangeText={setPassword}
                             secureTextEntry
-                            keyboardAppearance={colors.isDark ? 'dark' : 'light'}
+                            editable={!isLoggingIn}
                         />
                     </View>
 
                     {/* Login Button */}
                     <TouchableOpacity
-                        style={[styles.button, { backgroundColor: colors.primary }]}
+                        style={[
+                            styles.button,
+                            {
+                                backgroundColor: colors.primary,
+                                opacity: isLoggingIn ? 0.7 : 1
+                            }
+                        ]}
                         onPress={handleLogin}
                         activeOpacity={0.8}
+                        disabled={isLoggingIn}
                     >
-                        <Text style={styles.buttonText}>{t('login.button')}</Text>
+                        {isLoggingIn ? (
+                            <View style={styles.loadingButton}>
+                                <ActivityIndicator
+                                    size="small"
+                                    color="#ffffff"
+                                    style={styles.loadingIndicator}
+                                />
+                                <Text style={styles.buttonText}>Iniciando sesión...</Text>
+                            </View>
+                        ) : (
+                            <Text style={styles.buttonText}>{t('login.button')}</Text>
+                        )}
                     </TouchableOpacity>
 
                     {/* Footer */}
@@ -144,8 +183,14 @@ export default function LoginScreen() {
                         <Text style={[styles.footerText, { color: colors.textSecondary }]}>
                             {t('login.noAccount')}{' '}
                             <Text
-                                style={[styles.linkText, { color: colors.primary }]}
-                                onPress={() => router.push('/auth/registrar_usuario')}
+                                style={[
+                                    styles.linkText,
+                                    {
+                                        color: isLoggingIn ? colors.textSecondary : colors.primary,
+                                        opacity: isLoggingIn ? 0.5 : 1
+                                    }
+                                ]}
+                                onPress={isLoggingIn ? undefined : () => router.push('/auth/registrar_usuario')}
                             >
                                 {t('login.register')}
                             </Text>
@@ -252,6 +297,13 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontWeight: '600',
         fontSize: 16,
+    },
+    loadingButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    loadingIndicator: {
+        marginRight: 8,
     },
     footerContainer: {
         alignItems: 'center',

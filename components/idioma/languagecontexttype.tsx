@@ -21,42 +21,26 @@ const translations = {
         'login.noAccount': '¿No tienes cuenta?',
         'login.register': 'Regístrate',
 
+        // Register Screen
+        'register.title': '¡Únete a RecuerdaGo! 🚀',
+        'register.subtitle': 'Crea tu cuenta y nunca más olvides nada',
+        'register.name': 'Tu nombre',
+        'register.lastName': 'Tus apellidos',
+        'register.email': 'tu@email.com',
+        'register.password': 'Contraseña súper secreta',
+        'register.confirmPassword': 'Repite tu contraseña',
+        'register.button': '¡Crear mi cuenta! 🎉',
+        'register.hasAccount': '¿Ya tienes cuenta?',
+        'register.signIn': '¡Inicia sesión aquí! 👈',
+        'register.passwordsNotMatch': 'Las contraseñas no coinciden',
+        'register.passwordMinLength': 'Mínimo 6 caracteres',
+
         // General
-        'general.loading': 'Cargando...',
         'general.cancel': 'Cancelar',
-        'general.ok': 'OK',
-        'general.error': 'Error',
-        'general.success': 'Éxito',
-
-        // Navigation
-        'nav.home': 'Inicio',
-        'nav.monitor': 'Monitor',
-        'nav.reminders': 'Recordatorios',
-        'nav.groups': 'Grupos',
-        'nav.dataset': 'Dataset',
-        'nav.settings': 'Configuración',
-
-        // Monitor Screen
-        'monitor.title': 'Seleccionar Destino',
-        'monitor.newDestination': 'Nuevo Destino',
-        'monitor.placeholder': 'Escribe tu destino...',
-        'monitor.savedDestinations': 'Destinos Guardados',
-        'monitor.currentLocation': 'Ubicación Actual',
-        'monitor.exploreMap': 'Explorar Mapa',
-        'monitor.info': 'Información',
-        'monitor.infoText': 'Selecciona un destino para comenzar el monitoreo. Te avisaremos si te desvías de tu ruta programada.',
-        'monitor.mapTitle': 'Tu Ubicación Actual',
-        'monitor.markerTitle': 'Tu ubicación',
-        'monitor.markerDescription': 'Estás aquí',
-        'monitor.locationPermission': 'Permisos requeridos',
-        'monitor.locationPermissionText': 'Esta aplicación necesita acceso a la ubicación para mostrar el mapa.',
-        'monitor.locationError': 'No se pudo obtener tu ubicación. Verifica que el GPS esté activado.',
 
         // Settings
         'settings.language': 'Idioma',
         'settings.selectLanguage': 'Seleccionar Idioma',
-        'settings.spanish': 'Español',
-        'settings.english': 'English',
     },
     en: {
         // Login Screen
@@ -67,42 +51,26 @@ const translations = {
         'login.noAccount': 'Don\'t have an account?',
         'login.register': 'Sign Up',
 
+        // Register Screen
+        'register.title': 'Join RecuerdaGo! 🚀',
+        'register.subtitle': 'Create your account and never forget anything',
+        'register.name': 'Your name',
+        'register.lastName': 'Your last name',
+        'register.email': 'your@email.com',
+        'register.password': 'Super secret password',
+        'register.confirmPassword': 'Repeat your password',
+        'register.button': 'Create my account! 🎉',
+        'register.hasAccount': 'Already have an account?',
+        'register.signIn': 'Sign in here! 👈',
+        'register.passwordsNotMatch': 'Passwords don\'t match',
+        'register.passwordMinLength': 'Minimum 6 characters',
+
         // General
-        'general.loading': 'Loading...',
         'general.cancel': 'Cancel',
-        'general.ok': 'OK',
-        'general.error': 'Error',
-        'general.success': 'Success',
-
-        // Navigation
-        'nav.home': 'Home',
-        'nav.monitor': 'Monitor',
-        'nav.reminders': 'Reminders',
-        'nav.groups': 'Groups',
-        'nav.dataset': 'Dataset',
-        'nav.settings': 'Settings',
-
-        // Monitor Screen
-        'monitor.title': 'Select Destination',
-        'monitor.newDestination': 'New Destination',
-        'monitor.placeholder': 'Enter your destination...',
-        'monitor.savedDestinations': 'Saved Destinations',
-        'monitor.currentLocation': 'Current Location',
-        'monitor.exploreMap': 'Explore Map',
-        'monitor.info': 'Information',
-        'monitor.infoText': 'Select a destination to start monitoring. We will notify you if you deviate from your scheduled route.',
-        'monitor.mapTitle': 'Your Current Location',
-        'monitor.markerTitle': 'Your location',
-        'monitor.markerDescription': 'You are here',
-        'monitor.locationPermission': 'Permissions Required',
-        'monitor.locationPermissionText': 'This app needs location access to show the map.',
-        'monitor.locationError': 'Could not get your location. Please check that GPS is enabled.',
 
         // Settings
         'settings.language': 'Language',
         'settings.selectLanguage': 'Select Language',
-        'settings.spanish': 'Español',
-        'settings.english': 'English',
     }
 };
 
@@ -117,14 +85,14 @@ const getSystemLanguage = (): string => {
     try {
         // Usar getLocales() en lugar de Localization.locale
         const locales = getLocales();
-        
+
         if (locales && locales.length > 0) {
             // Obtener el primer locale del array
             const primaryLocale = locales[0];
-            
+
             // Extraer el código del idioma usando la estructura correcta del objeto Locale
             let languageCode = 'es'; // Por defecto
-            
+
             // Según la documentación, el objeto Locale tiene estas propiedades:
             if (primaryLocale.languageCode) {
                 // languageCode es la propiedad principal para el código del idioma
@@ -133,15 +101,15 @@ const getSystemLanguage = (): string => {
                 // languageTag es como "es-ES", "en-US", etc.
                 languageCode = primaryLocale.languageTag.split('-')[0];
             }
-            
+
             // Verificar si el idioma está soportado
             const supportedLanguages = ['es', 'en'];
             const detectedLanguage = supportedLanguages.includes(languageCode) ? languageCode : 'es';
-            
+
             console.log('Detected language:', detectedLanguage, 'from locale:', primaryLocale);
             return detectedLanguage;
         }
-        
+
         console.warn('No locales found, using default language');
         return 'es';
     } catch (error) {
