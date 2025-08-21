@@ -20,6 +20,9 @@ const translations = {
         'login.button': 'Iniciar Sesión',
         'login.noAccount': '¿No tienes cuenta?',
         'login.register': 'Regístrate',
+        'login.invalidCredentials': 'Login fallido, credenciales incorrectas',
+        'login.serverNoResponse': 'El servidor no responde. Intenta más tarde.',
+        'login.rememberMe': 'Recordarme',
 
         // Register Screen
         'register.title': '¡Únete a RecuerdaGo! 🚀',
@@ -37,6 +40,13 @@ const translations = {
 
         // General
         'general.cancel': 'Cancelar',
+        'general.error': 'Error',
+        'general.success': 'Éxito',
+        'register.fillAllFields': 'Por favor completa todos los campos',
+        'register.invalidEmail': 'Por favor ingresa un email válido',
+        'register.accountCreated': 'Tu cuenta ha sido creada',
+        'register.userAlreadyExists': 'Correo electrónico ya está registrado',
+        'register.serverNoResponse': 'El servidor no responde. Intenta más tarde.',
 
         // Settings
         'settings.language': 'Idioma',
@@ -50,6 +60,9 @@ const translations = {
         'login.button': 'Sign In',
         'login.noAccount': 'Don\'t have an account?',
         'login.register': 'Sign Up',
+        'login.invalidCredentials': 'Login failed, incorrect credentials',
+        'login.serverNoResponse': 'Server not responding. Try again later.',
+        'login.rememberMe': 'Remember me',
 
         // Register Screen
         'register.title': 'Join RecuerdaGo! 🚀',
@@ -64,9 +77,16 @@ const translations = {
         'register.signIn': 'Sign in here! 👈',
         'register.passwordsNotMatch': 'Passwords don\'t match',
         'register.passwordMinLength': 'Minimum 6 characters',
+        'register.userAlreadyExists': 'Email is already registered',
+        'register.serverNoResponse': 'Server not responding. Try again later.',
 
         // General
         'general.cancel': 'Cancel',
+        'general.error': 'Error',
+        'general.success': 'Success',
+        'register.fillAllFields': 'Please fill all fields',
+        'register.invalidEmail': 'Please enter a valid email',
+        'register.accountCreated': 'Your account has been created',
 
         // Settings
         'settings.language': 'Language',

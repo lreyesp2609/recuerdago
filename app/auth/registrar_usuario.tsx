@@ -1,3 +1,4 @@
+import Toast from 'react-native-toast-message';
 import { useLanguage } from '../../components/idioma/languagecontexttype';
 import LanguageSelector from '../../components/idioma/languageselector';
 import { useThemeColors } from '../../hooks/useThemeColor';
@@ -8,7 +9,6 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
-    Alert,
     Animated,
     KeyboardAvoidingView,
     SafeAreaView,
@@ -19,6 +19,8 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+
+import { API_ENDPOINTS, postFormData } from '../../components/config/api';
 
 export default function RegisterScreen() {
     const router = useRouter();
@@ -32,6 +34,7 @@ export default function RegisterScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [isRegistering, setIsRegistering] = useState(false);
     const colors = useThemeColors();
+    const [emailError, setEmailError] = useState('');
 
     // Animaciones
     const bounceValue = new Animated.Value(0);
@@ -80,47 +83,88 @@ export default function RegisterScreen() {
         outputRange: ['0deg', '15deg'],
     });
 
+    const backendMessages: Record<string, string> = {
+        USER_ALREADY_EXISTS: t('register.userAlreadyExists'),
+        'No response from server': t('register.serverNoResponse'),
+    };
+
     const handleRegister = async () => {
         if (!nombre || !apellidos || !email || !password) {
-            Alert.alert('Error', 'Por favor completa todos los campos');
+            Toast.show({
+                type: 'error',
+                text1: t('general.error') || 'Error',
+                text2: t('register.fillAllFields') || 'Por favor completa todos los campos',
+                position: 'top'
+            });
             return;
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            Alert.alert('Error', 'Por favor ingresa un email válido');
+            Toast.show({
+                type: 'error',
+                text1: t('general.error') || 'Error',
+                text2: t('register.invalidEmail') || 'Por favor ingresa un email válido',
+                position: 'top'
+            });
             return;
         }
 
         if (!passwordsMatch) {
-            Alert.alert('Error', 'Las contraseñas no coinciden');
+            Toast.show({
+                type: 'error',
+                text1: t('general.error') || 'Error',
+                text2: t('register.passwordsNotMatch') || 'Las contraseñas no coinciden',
+                position: 'top'
+            });
             return;
         }
 
         if (password.length < 6) {
-            Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+            Toast.show({
+                type: 'error',
+                text1: t('general.error') || 'Error',
+                text2: t('register.passwordMinLength') || 'La contraseña debe tener al menos 6 caracteres',
+                position: 'top'
+            });
             return;
         }
 
         setIsRegistering(true);
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            console.log('✅ Usuario registrado exitosamente:', {
+            const response = await postFormData(API_ENDPOINTS.REGISTER, {
                 nombre,
-                apellidos,
-                email
+                apellido: apellidos,
+                correo: email,
+                contrasenia: password
+            });
+
+            Toast.show({
+                type: 'success',
+                text1: t('general.success'),
+                text2: t('register.accountCreated'),
+                position: 'top'
             });
 
             router.replace('/tabs');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error en registro:', error);
-            Alert.alert('Error', 'Error al crear la cuenta. Inténtalo de nuevo.');
-        } finally {
+
+            const message = backendMessages[error?.message] || t('general.error');
+
+            Toast.show({
+                type: 'error',
+                text1: t('general.error'),
+                text2: message,
+                position: 'top'
+            });
+        }
+        finally {
             setIsRegistering(false);
         }
     };
+
 
     const handleBackToLogin = () => {
         if (isRegistering) return;
@@ -266,12 +310,20 @@ export default function RegisterScreen() {
                                 placeholder={t('register.email') || 'Email'}
                                 placeholderTextColor={colors.placeholder}
                                 value={email}
-                                onChangeText={setEmail}
+                                onChangeText={(text) => {
+                                    setEmail(text);
+                                    setEmailError('');
+                                }}
+
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 keyboardAppearance={colors.isDark ? 'dark' : 'light'}
                                 editable={!isRegistering}
                             />
+                            {emailError.length > 0 && (
+                                <Text style={styles.errorText}>{emailError}</Text>
+                            )}
+
                         </View>
 
                         {/* Contraseña */}

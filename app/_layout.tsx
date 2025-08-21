@@ -3,6 +3,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
 import 'react-native-url-polyfill/auto';
 import { LanguageProvider } from '../components/idioma/languagecontexttype';
 import { useColorScheme } from '../hooks/useColorScheme';
@@ -24,9 +25,9 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="auth" />
           <Stack.Screen name="tabs" />
-          {/* Aquí puedes agregar más rutas principales como (tabs) */}
         </Stack>
         <StatusBar style="auto" />
+        <Toast />
       </ThemeProvider>
     </LanguageProvider>
   );

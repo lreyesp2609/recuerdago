@@ -13,10 +13,6 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "ios": {
-      "supportsTablet": true,
-      "userInterfaceStyle": "automatic"
-    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -24,8 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.lreyesp.recuerdago",
-      "userInterfaceStyle": "automatic",
-      "theme": "@style/AppTheme"
+      "userInterfaceStyle": "automatic"
     },
     "web": {
       "bundler": "metro",

@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
     Dimensions,
@@ -9,6 +11,8 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
+import { decodeToken } from '../../components/config/api';
 import { useLanguage } from '../../components/idioma/languagecontexttype';
 import { useThemeColors } from '../../hooks/useThemeColor';
 
@@ -18,7 +22,11 @@ export default function IntroductionScreen() {
     const colors = useThemeColors();
     const { t } = useLanguage();
     const insets = useSafeAreaInsets();
-    
+    const router = useRouter();
+
+    // Estado para guardar usuario
+    const [usuario, setUsuario] = useState<{ nombre: string; apellido: string } | null>(null);
+
     // Animaciones
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
@@ -27,16 +35,61 @@ export default function IntroductionScreen() {
     const rotateValue = useRef(new Animated.Value(0)).current;
     const logoFadeAnim = useRef(new Animated.Value(0)).current;
 
+    // Función para verificar sesión
+    const verificarSesion = async () => {
+        try {
+            const token = await AsyncStorage.getItem('access_token');
+            if (!token) {
+                console.log('⚠️ No hay token guardado');
+                return;
+            }
+
+            console.log('🔑 Token guardado en AsyncStorage:', token);
+
+            const data = await decodeToken(token);
+
+            // Si el backend devuelve datos, la sesión sigue activa
+            setUsuario({ nombre: data.nombre, apellido: data.apellido });
+        } catch (error: any) {
+            console.warn('❌ Sesión inactiva o token inválido:', error);
+
+            // Mostrar toast antes de cerrar sesión
+            Toast.show({
+                type: 'info',
+                text1: 'Sesión cerrada',
+                text2: 'Tu sesión ha expirado.',
+                position: 'top',
+                visibilityTime: 3000,
+            });
+
+            // Logout automático
+            await AsyncStorage.removeItem('access_token');
+            router.replace('/auth/inicio_sesion'); // redirige al login
+        }
+    };
+
+    // Verificación inicial al montar pantalla
     useEffect(() => {
-        // Secuencia de animaciones de entrada
+        verificarSesion();
+    }, []);
+
+    // Verificación periódica (opcional)
+    useEffect(() => {
+        const interval = setInterval(() => {
+            verificarSesion();
+        }, 15000); // cada 15 segundos
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // Animaciones
+    useEffect(() => {
         Animated.sequence([
-            // Primero aparece el logo pequeño
             Animated.timing(logoFadeAnim, {
                 toValue: 1,
                 duration: 600,
                 useNativeDriver: true,
             }),
-            // Luego el contenido principal
             Animated.parallel([
                 Animated.timing(scaleAnim, {
                     toValue: 1,
@@ -49,7 +102,6 @@ export default function IntroductionScreen() {
                     useNativeDriver: true,
                 }),
             ]),
-            // Finalmente el deslizamiento
             Animated.timing(slideAnim, {
                 toValue: 0,
                 duration: 600,
@@ -57,29 +109,16 @@ export default function IntroductionScreen() {
             }),
         ]).start();
 
-        // Animación continua de rebote para el logo pequeño
+        // Animaciones looping
         Animated.loop(
             Animated.sequence([
-                Animated.timing(bounceValue, {
-                    toValue: 1,
-                    duration: 3000,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(bounceValue, {
-                    toValue: 0,
-                    duration: 3000,
-                    useNativeDriver: true,
-                }),
+                Animated.timing(bounceValue, { toValue: 1, duration: 3000, useNativeDriver: true }),
+                Animated.timing(bounceValue, { toValue: 0, duration: 3000, useNativeDriver: true }),
             ])
         ).start();
 
-        // Animación de rotación sutil para la campanita
         Animated.loop(
-            Animated.timing(rotateValue, {
-                toValue: 1,
-                duration: 4000,
-                useNativeDriver: true,
-            })
+            Animated.timing(rotateValue, { toValue: 1, duration: 4000, useNativeDriver: true })
         ).start();
     }, []);
 
@@ -96,9 +135,9 @@ export default function IntroductionScreen() {
     return (
         <SafeAreaView style={[styles.introContainer, { backgroundColor: colors.background }]}>
             <StatusBar style={colors.isDark ? 'light' : 'dark'} />
-            
-            {/* Logo pequeño flotante en esquina superior izquierda */}
-            <Animated.View 
+
+            {/* Logo pequeño flotante */}
+            <Animated.View
                 style={[
                     styles.floatingLogo,
                     {
@@ -110,134 +149,59 @@ export default function IntroductionScreen() {
                 ]}
             >
                 <View style={styles.smallLogoContainer}>
-                    <Ionicons
-                        name="location-sharp"
-                        size={24}
-                        color={colors.primary}
-                    />
+                    <Ionicons name="location-sharp" size={24} color={colors.primary} />
                     <Animated.View
                         style={[
                             styles.smallBellIcon,
-                            {
-                                backgroundColor: colors.primary,
-                                transform: [{ rotate: rotateInterpolate }]
-                            }
+                            { backgroundColor: colors.primary, transform: [{ rotate: rotateInterpolate }] }
                         ]}
                     >
-                        <Ionicons
-                            name="alarm"
-                            size={12}
-                            color={colors.surface}
-                        />
+                        <Ionicons name="alarm" size={12} color={colors.surface} />
                     </Animated.View>
                 </View>
             </Animated.View>
 
-            <Animated.View 
+            <Animated.View
                 style={[
                     styles.introContent,
                     {
                         opacity: fadeAnim,
                         transform: [{ translateY: slideAnim }],
-                        paddingTop: insets.top + 80, // Espacio para el logo flotante
-                        paddingBottom: insets.bottom + 80 // Espacio para el tab bar
+                        paddingTop: insets.top + 80,
+                        paddingBottom: insets.bottom + 80
                     }
                 ]}
             >
-                {/* Título Principal */}
-                <Animated.Text 
+                {/* Título */}
+                <Animated.Text
                     style={[
-                        styles.mainTitle, 
-                        { 
-                            color: colors.text,
-                            opacity: fadeAnim,
-                            transform: [{ scale: scaleAnim }]
-                        }
+                        styles.mainTitle,
+                        { color: colors.text, opacity: fadeAnim, transform: [{ scale: scaleAnim }] }
                     ]}
                 >
                     RecuerdaGo
                 </Animated.Text>
 
                 {/* Subtítulo */}
-                <Animated.Text 
-                    style={[
-                        styles.subtitle, 
-                        { 
-                            color: colors.textSecondary,
-                            opacity: fadeAnim 
-                        }
-                    ]}
+                <Animated.Text
+                    style={[styles.subtitle, { color: colors.textSecondary, opacity: fadeAnim }]}
                 >
                     Tu compañero inteligente de movilidad urbana
                 </Animated.Text>
 
-                {/* Módulos de funcionalidades */}
-                <Animated.View 
-                    style={[
-                        styles.featuresContainer,
-                        { opacity: fadeAnim }
-                    ]}
-                >
-                    {/* Rutas Inteligentes */}
-                    <View style={[styles.featureCard, { backgroundColor: colors.surface }]}>
-                        <View style={[styles.featureIcon, { backgroundColor: `${colors.primary}20` }]}>
-                            <Ionicons name="map" size={20} color={colors.primary} />
-                        </View>
-                        <View style={styles.featureText}>
-                            <Text style={[styles.featureTitle, { color: colors.text }]}>
-                                🗺️ Rutas Inteligentes
-                            </Text>
-                            <Text style={[styles.featureDescription, { color: colors.textSecondary }]}>
-                                Opciones alternas para evitar patrones predecibles
-                            </Text>
-                        </View>
-                    </View>
-
-                    {/* Recordatorios Geolocalizados */}
-                    <View style={[styles.featureCard, { backgroundColor: colors.surface }]}>
-                        <View style={[styles.featureIcon, { backgroundColor: `${colors.secondary}20` }]}>
-                            <Ionicons name="notifications" size={20} color={colors.secondary} />
-                        </View>
-                        <View style={styles.featureText}>
-                            <Text style={[styles.featureTitle, { color: colors.text }]}>
-                                📍 Recordatorios Smart
-                            </Text>
-                            <Text style={[styles.featureDescription, { color: colors.textSecondary }]}>
-                                Alertas por proximidad durante tus desplazamientos
-                            </Text>
-                        </View>
-                    </View>
-
-                    {/* Monitoreo Colaborativo */}
-                    <View style={[styles.featureCard, { backgroundColor: colors.surface }]}>
-                        <View style={[styles.featureIcon, { backgroundColor: `${colors.tint}20` }]}>
-                            <Ionicons name="people" size={20} color={colors.tint} />
-                        </View>
-                        <View style={styles.featureText}>
-                            <Text style={[styles.featureTitle, { color: colors.text }]}>
-                                👥 Grupos Colaborativos
-                            </Text>
-                            <Text style={[styles.featureDescription, { color: colors.textSecondary }]}>
-                                Monitoreo compartido con grupos de confianza
-                            </Text>
-                        </View>
-                    </View>
-                </Animated.View>
-
-                {/* Mensaje de bienvenida */}
-                <Animated.View 
-                    style={[
-                        styles.welcomeMessage,
-                        { 
-                            backgroundColor: `${colors.primary}10`,
-                            opacity: fadeAnim 
-                        }
-                    ]}
-                >
-                    <Text style={[styles.welcomeText, { color: colors.primary }]}>
-                        ✨ ¡Bienvenido a una nueva forma de moverte por la ciudad! ✨
-                    </Text>
-                </Animated.View>
+                {/* Saludo al usuario */}
+                {usuario && (
+                    <Animated.View
+                        style={[
+                            styles.welcomeMessage,
+                            { backgroundColor: `${colors.primary}10`, opacity: fadeAnim }
+                        ]}
+                    >
+                        <Text style={[styles.welcomeText, { color: colors.primary }]}>
+                            👋 Hola {usuario.nombre} {usuario.apellido}, bienvenido!
+                        </Text>
+                    </Animated.View>
+                )}
             </Animated.View>
         </SafeAreaView>
     );
