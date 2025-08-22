@@ -34,7 +34,7 @@ export default function LoginScreen() {
     const [recordarme, setRecordarme] = useState(false);
 
     // Función login con FormData
-    const login = async (email: string, password: string, recordarme: boolean) => {
+    const login = async (email: string, password: string) => {
         try {
             const ip = await Network.getIpAddressAsync();
             const dispositivo = Constants.deviceName || 'unknown';
@@ -43,77 +43,53 @@ export default function LoginScreen() {
                 version_app = Constants.manifest.version;
             }
 
-            return await postFormData(API_ENDPOINTS.LOGIN, {
+            const response = await postFormData(API_ENDPOINTS.LOGIN, {
                 correo: email,
                 contrasenia: password,
-                recordarme,
                 dispositivo,
                 version_app,
                 ip,
             });
+
+            // Guardar access y refresh token
+            await AsyncStorage.setItem('access_token', response.access_token);
+            await AsyncStorage.setItem('refresh_token', response.refresh_token);
+
+            return response;
         } catch (error: any) {
-            console.error('Error en login interno:', error);
+            let message = t('general.error');
 
-            if (error?.message === 'INVALID_CREDENTIALS') {
-                throw { message: t('login.invalidCredentials') };
-            }
-            if (error?.message === 'No response from server') {
-                throw { message: t('login.serverNoResponse') };
+            if (error?.message?.toLowerCase() === 'invalid_credentials') {
+                message = t('login.invalidCredentials');
+            } else if (error?.message?.toLowerCase() === 'no response from server') {
+                message = t('login.serverNoResponse');
             }
 
-            throw { message: t('general.error') };
+            throw { message };
         }
     };
 
     const handleLogin = async () => {
         if (!email || !password) {
-            Toast.show({
-                type: 'error',
-                text1: t('general.error'),
-                text2: t('register.fillAllFields'),
-                position: 'top',
-            });
-            return;
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            Toast.show({
-                type: 'error',
-                text1: t('general.error'),
-                text2: t('register.invalidEmail'),
-                position: 'top',
-            });
+            Toast.show({ type: 'error', text1: t('general.error'), text2: t('register.fillAllFields') });
             return;
         }
 
         setIsLoggingIn(true);
 
         try {
-            const response = await login(email, password, recordarme);
-            const token = response.access_token;
-
-            // Guardar token en AsyncStorage
-            await AsyncStorage.setItem('access_token', token);
+            await login(email, password);
 
             Toast.show({
                 type: 'success',
                 text1: t('general.success'),
-                text2: 'Bienvenido de nuevo!',
-                position: 'top',
+                text2: t('login.welcomeBack'),
             });
 
             router.replace('/tabs');
         } catch (error: any) {
-            console.error('Error en login:', error);
             const message = typeof error?.message === 'string' ? error.message : t('general.error');
-
-            Toast.show({
-                type: 'error',
-                text1: t('general.error'),
-                text2: message,
-                position: 'top',
-            });
+            Toast.show({ type: 'error', text1: t('general.error'), text2: message });
         } finally {
             setIsLoggingIn(false);
         }
@@ -127,7 +103,7 @@ export default function LoginScreen() {
             </View>
         );
     }
-    
+
     return (
         <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
             <StatusBar style={colors.isDark ? 'light' : 'dark'} />
@@ -174,25 +150,6 @@ export default function LoginScreen() {
                             secureTextEntry
                             editable={!isLoggingIn}
                         />
-                    </View>
-
-                    {/* Recordarme Checkbox */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
-                        <TouchableOpacity
-                            onPress={() => setRecordarme(prev => !prev)}
-                            style={{
-                                width: 24,
-                                height: 24,
-                                borderWidth: 1,
-                                borderColor: colors.primary,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                marginRight: 10,
-                            }}
-                        >
-                            {recordarme && <View style={{ width: 16, height: 16, backgroundColor: colors.primary }} />}
-                        </TouchableOpacity>
-                        <Text style={{ color: colors.text }}>{t('login.rememberMe')}</Text>
                     </View>
 
                     {/* Login Button */}

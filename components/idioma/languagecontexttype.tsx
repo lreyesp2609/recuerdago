@@ -22,7 +22,7 @@ const translations = {
         'login.register': 'Regístrate',
         'login.invalidCredentials': 'Login fallido, credenciales incorrectas',
         'login.serverNoResponse': 'El servidor no responde. Intenta más tarde.',
-        'login.rememberMe': 'Recordarme',
+        'login.welcomeBack': '¡Bienvenido de nuevo!',
 
         // Register Screen
         'register.title': '¡Únete a RecuerdaGo! 🚀',
@@ -51,6 +51,9 @@ const translations = {
         // Settings
         'settings.language': 'Idioma',
         'settings.selectLanguage': 'Seleccionar Idioma',
+
+        // Rutas
+        'routas.newUbicacion': 'Nueva Ubicación',
     },
     en: {
         // Login Screen
@@ -62,7 +65,7 @@ const translations = {
         'login.register': 'Sign Up',
         'login.invalidCredentials': 'Login failed, incorrect credentials',
         'login.serverNoResponse': 'Server not responding. Try again later.',
-        'login.rememberMe': 'Remember me',
+        'login.welcomeBack': 'Welcome back!',
 
         // Register Screen
         'register.title': 'Join RecuerdaGo! 🚀',
@@ -91,6 +94,9 @@ const translations = {
         // Settings
         'settings.language': 'Language',
         'settings.selectLanguage': 'Select Language',
+
+        // Rutas
+        'routas.newUbicacion': 'New Location',
     }
 };
 

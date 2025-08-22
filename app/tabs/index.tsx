@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
     Animated,
     Dimensions,
@@ -11,11 +10,9 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
-import { decodeToken } from '../../components/config/api';
 import { useLanguage } from '../../components/idioma/languagecontexttype';
+import { useSession } from '../../components/session/SessionContext';
 import { useThemeColors } from '../../hooks/useThemeColor';
-
 const { width, height } = Dimensions.get('window');
 
 export default function IntroductionScreen() {
@@ -23,9 +20,7 @@ export default function IntroductionScreen() {
     const { t } = useLanguage();
     const insets = useSafeAreaInsets();
     const router = useRouter();
-
-    // Estado para guardar usuario
-    const [usuario, setUsuario] = useState<{ nombre: string; apellido: string } | null>(null);
+    const { usuario } = useSession();
 
     // Animaciones
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -34,53 +29,6 @@ export default function IntroductionScreen() {
     const bounceValue = useRef(new Animated.Value(0)).current;
     const rotateValue = useRef(new Animated.Value(0)).current;
     const logoFadeAnim = useRef(new Animated.Value(0)).current;
-
-    // Función para verificar sesión
-    const verificarSesion = async () => {
-        try {
-            const token = await AsyncStorage.getItem('access_token');
-            if (!token) {
-                console.log('⚠️ No hay token guardado');
-                return;
-            }
-
-            console.log('🔑 Token guardado en AsyncStorage:', token);
-
-            const data = await decodeToken(token);
-
-            // Si el backend devuelve datos, la sesión sigue activa
-            setUsuario({ nombre: data.nombre, apellido: data.apellido });
-        } catch (error: any) {
-            console.warn('❌ Sesión inactiva o token inválido:', error);
-
-            // Mostrar toast antes de cerrar sesión
-            Toast.show({
-                type: 'info',
-                text1: 'Sesión cerrada',
-                text2: 'Tu sesión ha expirado.',
-                position: 'top',
-                visibilityTime: 3000,
-            });
-
-            // Logout automático
-            await AsyncStorage.removeItem('access_token');
-            router.replace('/auth/inicio_sesion'); // redirige al login
-        }
-    };
-
-    // Verificación inicial al montar pantalla
-    useEffect(() => {
-        verificarSesion();
-    }, []);
-
-    // Verificación periódica (opcional)
-    useEffect(() => {
-        const interval = setInterval(() => {
-            verificarSesion();
-        }, 15000); // cada 15 segundos
-
-        return () => clearInterval(interval);
-    }, []);
 
     // Animaciones
     useEffect(() => {

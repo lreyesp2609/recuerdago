@@ -1,23 +1,37 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguage } from '../../components/idioma/languagecontexttype';
+import { SessionProvider, useSession } from '../../components/session/SessionContext';
 import { useThemeColors } from '../../hooks/useThemeColor';
 
-export default function TabsLayout() {
+function TabsContent() {
     const colors = useThemeColors();
     const { t } = useLanguage();
     const insets = useSafeAreaInsets();
+    const { isLoading } = useSession();
+
+    if (isLoading) {
+        return (
+            <View style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: colors.background
+            }}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
 
     return (
         <Tabs
             screenOptions={{
                 tabBarActiveTintColor: colors.primary,
                 tabBarInactiveTintColor: colors.tabIconDefault,
-                // Dejar títulos visibles (puedes quitar esta línea, true es default)
-                tabBarShowLabel: true, 
+                tabBarShowLabel: true,
                 tabBarStyle: {
                     backgroundColor: colors.surface,
                     borderTopColor: colors.border,
@@ -32,7 +46,7 @@ export default function TabsLayout() {
                     shadowRadius: 8,
                 },
                 tabBarItemStyle: {
-                    borderRadius: 4, // un poco más cuadrado, menos redondo
+                    borderRadius: 4,
                     marginHorizontal: 6,
                     overflow: 'hidden',
                 },
@@ -42,21 +56,22 @@ export default function TabsLayout() {
             <Tabs.Screen
                 name="index"
                 options={{
-                    title: 'Inicio', // Aquí pones el título que quieres mostrar
+                    title: 'Inicio',
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="home" size={size} color={color} />
                     ),
                 }}
             />
             <Tabs.Screen
-                name="rutas/rutas"
+                name="rutas/index"
                 options={{
-                    title: 'Rutas',
+                    title: "Rutas",
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="map" size={size} color={color} />
                     ),
                 }}
             />
+
             <Tabs.Screen
                 name="recordatorios/recordatorios"
                 options={{
@@ -75,6 +90,23 @@ export default function TabsLayout() {
                     ),
                 }}
             />
+            <Tabs.Screen
+                name="configuracion/configuracion"
+                options={{
+                    title: 'Configuración',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="settings" size={size} color={color} />
+                    ),
+                }}
+            />
         </Tabs>
+    );
+}
+
+export default function TabsLayout() {
+    return (
+        <SessionProvider>
+            <TabsContent />
+        </SessionProvider>
     );
 }
